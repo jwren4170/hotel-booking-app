@@ -134,7 +134,7 @@
 						"useAsConstAssertion": "error"
 					},
 					"suspicious": {
-						"noExplicitAny": "warn",
+						"noExplicitAny": "off",
 						"noExtraNonNullAssertion": "error",
 						"noMisleadingInstantiator": "error",
 						"noNonNullAssertedOptionalChain": "error",
