@@ -59,7 +59,7 @@ export default function Header() {
 							About
 						</li>
 					</Link>
-					<Link to="/profile">
+					<Link to="/sign-in">
 						{/* {currentUser ? (
 							<img
 								className="rounded-full w-7 h-7 object-cover"

@@ -10,6 +10,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.4.15",
 		"@types/bun": "latest",
+		"@types/cookie-parser": "^1.4.10",
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.6"
 	},
@@ -18,11 +19,14 @@
 	},
 	"dependencies": {
 		"@types/bcrypt": "^6.0.0",
+		"@types/jsonwebtoken": "^9.0.10",
 		"@types/nodemon": "^3.1.1",
 		"bcrypt-ts": "^8.0.1",
+		"cookie-parser": "^1.4.7",
 		"cors": "^2.8.6",
 		"dotenv": "^17.4.2",
 		"express": "^5.2.1",
+		"jsonwebtoken": "^9.0.3",
 		"mongoose": "^9.6.2",
 		"nodemon": "^3.1.14",
 		"ts-node-dev": "^2.0.0"

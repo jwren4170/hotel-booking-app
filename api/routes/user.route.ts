@@ -1,8 +1,9 @@
 import express from "express";
-import { index } from "../controllers/user.controller.ts";
+import { me } from "../controllers/user.controller.ts";
+import { verifyToken } from "../utils/verifyToken.ts";
 
 const router = express.Router();
 
-router.get("/", index);
+router.get("/me", verifyToken, me);
 
 export default router;

@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import express, {
 	type Express,
 	type NextFunction,
@@ -5,12 +6,12 @@ import express, {
 	type Response,
 } from "express";
 import mongoose from "mongoose";
-import "dotenv/config";
 import authRoutes from "./routes/auth.route.ts";
 import userRoutes from "./routes/user.route.ts";
+import { env } from "./utils/env.ts";
 
 mongoose
-	.connect(process.env.DATABASE_URI as string)
+	.connect(env.DATABASE_URI)
 	.then(() => {
 		console.log("DB connected successfully");
 	})
@@ -25,6 +26,7 @@ const app: Express = express();
 const PORT = 3000;
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
