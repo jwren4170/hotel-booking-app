@@ -1,21 +1,21 @@
-import { useState } from "react";
+import { type ChangeEvent, type SubmitEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
 
 const SignUp = () => {
 	const [formData, setFormData] = useState({});
-	const [error, setError] = useState(null);
+	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 	const navigate = useNavigate();
 
-	const handleChange = (e: any) => {
+	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setFormData({
 			...formData,
 			[e.target.id]: e.target.value,
 		});
 	};
 
-	const handleSubmit = async (e: any) => {
+	const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		try {
 			setLoading(true);
@@ -36,9 +36,9 @@ const SignUp = () => {
 			setLoading(false);
 			setError(null);
 			navigate("/sign-in");
-		} catch (error: any) {
+		} catch (error: unknown) {
 			setLoading(false);
-			setError(error.message);
+			setError(error instanceof Error ? error.message : "Something went wrong");
 		}
 	};
 	return (

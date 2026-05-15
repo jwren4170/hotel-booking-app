@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ChangeEvent, type SubmitEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
@@ -13,13 +13,13 @@ const SignIn = () => {
 	const { loading, error } = useAppSelector((state) => state.user);
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
-	const handleChange = (e: any) => {
+	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setFormData({
 			...formData,
 			[e.target.id]: e.target.value,
 		});
 	};
-	const handleSubmit = async (e: any) => {
+	const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		try {
 			dispatch(signInStart());
@@ -38,8 +38,12 @@ const SignIn = () => {
 			}
 			dispatch(signInSuccess(data));
 			navigate("/");
-		} catch (error: any) {
-			dispatch(signInFailure(error.message));
+		} catch (error: unknown) {
+			dispatch(
+				signInFailure(
+					error instanceof Error ? error.message : "Something went wrong",
+				),
+			);
 		}
 	};
 	return (

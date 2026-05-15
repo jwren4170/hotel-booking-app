@@ -29,8 +29,8 @@ const OAuth = () => {
 
 			dispatch(signInSuccess(data));
 			navigate("/");
-		} catch (error) {
-			console.log("could not sign in with google", error);
+		} catch (error: unknown) {
+			console.log("Could not sign in with google", error);
 		}
 	};
 	return (

@@ -44,7 +44,8 @@
 						"useIsNan": "error",
 						"useValidForDirection": "error",
 						"useValidTypeof": "error",
-						"useYield": "error"
+						"useYield": "error",
+						"useExhaustiveDependencies": "warn"
 					},
 					"suspicious": {
 						"noAsyncPromiseExecutor": "error",
