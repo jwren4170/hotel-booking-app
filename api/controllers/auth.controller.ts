@@ -1,30 +1,35 @@
 import { compareSync, hashSync } from "bcrypt-ts";
-import express, {
-	type NextFunction,
-	type Request,
-	type Response,
-} from "express";
+import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.ts";
 import { env } from "../utils/env.ts";
 import { errorHandler } from "../utils/error.ts";
 
-const router = express.Router();
-
-export const signup = router.post(
-	"/signup",
-	async (req: Request, res: Response, next: NextFunction) => {
-		const { email, password, username } = req.body;
+export const signup = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	const { email, password, username } = req.body;
+	try {
 		const hashedPassword = hashSync(password, 10);
 		const newUser = new User({ email, password: hashedPassword, username });
-		try {
-			await newUser.save();
-			res.status(201).json("User created successfully!");
-		} catch (error: any) {
-			next(error);
-		}
-	},
-);
+		await newUser.save();
+		const token = jwt.sign({ id: newUser._id }, env.JWT_SECRET, {
+			expiresIn: "7d",
+		});
+		const { password: pass, ...rest } = newUser.toObject();
+		res
+			.cookie("access_token", token, {
+				httpOnly: true,
+				maxAge: 7 * 24 * 60 * 60 * 1000,
+			})
+			.status(201)
+			.json(rest);
+	} catch (error) {
+		next(error);
+	}
+};
 
 export const signin = async (
 	req: Request,
@@ -89,7 +94,6 @@ export const google = async (
 					Math.random().toString(36).slice(-4),
 				email: req.body.email,
 				password: hashedPassword,
-				avatar: req.body.photo,
 			});
 			await newUser.save();
 			const token = jwt.sign({ id: newUser._id }, env.JWT_SECRET);

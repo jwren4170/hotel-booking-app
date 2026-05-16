@@ -1,12 +1,15 @@
 import { type ChangeEvent, type SubmitEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
+import { useAppDispatch } from "../redux/hooks";
+import { signInSuccess } from "../redux/user/userSlice";
 
 const SignUp = () => {
 	const [formData, setFormData] = useState({});
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 	const navigate = useNavigate();
+	const dispatch = useAppDispatch();
 
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setFormData({
@@ -27,7 +30,6 @@ const SignUp = () => {
 				body: JSON.stringify(formData),
 			});
 			const data = await res.json();
-			console.log(data);
 			if (data.success === false) {
 				setLoading(false);
 				setError(data.message);
@@ -35,7 +37,8 @@ const SignUp = () => {
 			}
 			setLoading(false);
 			setError(null);
-			navigate("/sign-in");
+			dispatch(signInSuccess(data));
+			navigate("/");
 		} catch (error: unknown) {
 			setLoading(false);
 			setError(error instanceof Error ? error.message : "Something went wrong");

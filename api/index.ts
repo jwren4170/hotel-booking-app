@@ -1,3 +1,5 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
 import express, {
 	type Express,
@@ -9,6 +11,8 @@ import mongoose from "mongoose";
 import authRoutes from "./routes/auth.route.ts";
 import userRoutes from "./routes/user.route.ts";
 import { env } from "./utils/env.ts";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 mongoose
 	.connect(env.DATABASE_URI)
@@ -28,6 +32,7 @@ const PORT = 3000;
 app.use(express.json());
 app.use(cookieParser());
 
+app.use("/api/uploads", express.static(resolve(__dirname, "uploads")));
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
 

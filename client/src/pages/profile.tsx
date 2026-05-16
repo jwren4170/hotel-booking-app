@@ -1,24 +1,17 @@
 import {
-	getDownloadURL,
-	getStorage,
-	ref,
-	uploadBytesResumable,
-} from "firebase/storage";
-import {
 	type ChangeEvent,
 	type SubmitEventHandler,
 	useEffect,
 	useRef,
 	useState,
 } from "react";
-import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { app } from "../firebase";
-import { useAppSelector } from "../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
 	deleteUserFailure,
 	deleteUserStart,
 	deleteUserSuccess,
+	signInSuccess,
 	signOutUserFailure,
 	signOutUserStart,
 	signOutUserSuccess,
@@ -34,7 +27,7 @@ interface Listing {
 }
 
 type ProfileFormData = Partial<
-	Record<"username" | "email" | "password" | "avatar", string>
+	Record<"username" | "email" | "password", string>
 >;
 
 export default function Profile() {
@@ -47,40 +40,41 @@ export default function Profile() {
 	const [updateSuccess, setUpdateSuccess] = useState(false);
 	const [showListingsError, setShowListingsError] = useState(false);
 	const [userListings, setUserListings] = useState<Listing[]>([]);
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-
-	// firebase storage
-	// allow read;
-	// allow write: if
-	// request.resource.size < 2 * 1024 * 1024 &&
-	// request.resource.contentType.matches('image/.*')
 
 	useEffect(() => {
 		if (!file) return;
 
-		const storage = getStorage(app);
-		const fileName = new Date().getTime() + file.name;
-		const storageRef = ref(storage, fileName);
-		const uploadTask = uploadBytesResumable(storageRef, file);
+		setFilePerc(0);
+		setFileUploadError(false);
 
-		uploadTask.on(
-			"state_changed",
-			(snapshot) => {
-				const progress =
-					(snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-				setFilePerc(Math.round(progress));
-			},
-			() => {
+		const xhr = new XMLHttpRequest();
+		xhr.open("POST", "/api/user/avatar");
+
+		xhr.upload.addEventListener("progress", (e) => {
+			if (e.lengthComputable) {
+				setFilePerc(Math.round((e.loaded / e.total) * 100));
+			}
+		});
+
+		xhr.addEventListener("load", () => {
+			if (xhr.status >= 200 && xhr.status < 300) {
+				setFilePerc(100);
+				dispatch(signInSuccess(JSON.parse(xhr.responseText)));
+			} else {
 				setFileUploadError(true);
-			},
-			() => {
-				getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) =>
-					setFormData((prev) => ({ ...prev, avatar: downloadURL })),
-				);
-			},
-		);
-	}, [file]);
+			}
+		});
+
+		xhr.addEventListener("error", () => setFileUploadError(true));
+
+		const body = new FormData();
+		body.append("avatar", file);
+		xhr.send(body);
+
+		return () => xhr.abort();
+	}, [file, dispatch]);
 
 	if (!currentUser) return null;
 
@@ -207,7 +201,7 @@ export default function Profile() {
 				/>
 				<img
 					onClick={() => fileRef.current?.click()}
-					src={formData.avatar || currentUser.avatar}
+					src={currentUser.avatar}
 					alt="profile"
 					className="self-center mt-2 rounded-full w-24 h-24 object-cover cursor-pointer"
 				/>
@@ -242,7 +236,7 @@ export default function Profile() {
 				/>
 				<input
 					type="password"
-					placeholder="password"
+					placeholder="Change password"
 					onChange={handleChange}
 					id="password"
 					className="p-3 border rounded-lg"
