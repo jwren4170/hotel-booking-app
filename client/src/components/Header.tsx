@@ -1,12 +1,11 @@
 import { type SubmitEvent, useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
-import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import { useSession } from "../lib/authClient";
 
 export default function Header() {
-	const { currentUser } = useSelector(
-		(state: { user: { currentUser: { avatar: string } | null } }) => state.user,
-	);
+	const { data: session } = useSession();
+	const currentUser = session?.user;
 	const [searchTerm, setSearchTerm] = useState("");
 	const navigate = useNavigate();
 	const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
@@ -65,7 +64,7 @@ export default function Header() {
 								<img
 									referrerPolicy="no-referrer"
 									className="rounded-full w-7 h-7 object-cover"
-									src={currentUser.avatar}
+									src={currentUser.image ?? "/images/default-avatar.png"}
 									alt="profile"
 								/>
 							</div>

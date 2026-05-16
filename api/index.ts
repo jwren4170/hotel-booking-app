@@ -1,40 +1,35 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import cookieParser from "cookie-parser";
+import { toNodeHandler } from "better-auth/node";
+import cors from "cors";
 import express, {
 	type Express,
 	type NextFunction,
 	type Request,
 	type Response,
 } from "express";
-import mongoose from "mongoose";
-import authRoutes from "./routes/auth.route.ts";
+import { auth } from "./auth.ts";
 import userRoutes from "./routes/user.route.ts";
 import { env } from "./utils/env.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-mongoose
-	.connect(env.DATABASE_URI)
-	.then(() => {
-		console.log("DB connected successfully");
-	})
-	.catch((e) => {
-		console.log(`Something went wrong ${e.message}`);
-	})
-	.finally(() => {
-		console.log("Nodemon is listening for changes");
-	});
-
 const app: Express = express();
 const PORT = 3000;
 
+app.use(
+	cors({
+		origin: env.CLIENT_URL,
+		credentials: true,
+	}),
+);
+
+app.all("/api/auth/{*any}", toNodeHandler(auth));
+
 app.use(express.json());
-app.use(cookieParser());
 
 app.use("/api/uploads", express.static(resolve(__dirname, "uploads")));
 app.use("/api/user", userRoutes);
-app.use("/api/auth", authRoutes);
 
 app.use(
 	(

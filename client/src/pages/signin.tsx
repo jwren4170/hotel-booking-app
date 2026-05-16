@@ -1,18 +1,18 @@
 import { type ChangeEvent, type SubmitEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import {
-	signInFailure,
-	signInStart,
-	signInSuccess,
-} from "../redux/user/userSlice";
+import { authClient } from "../lib/authClient";
+
+type SignInFormData = {
+	email?: string;
+	password?: string;
+};
 
 const SignIn = () => {
-	const [formData, setFormData] = useState({});
-	const { loading, error } = useAppSelector((state) => state.user);
+	const [formData, setFormData] = useState<SignInFormData>({});
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 	const navigate = useNavigate();
-	const dispatch = useAppDispatch();
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setFormData({
 			...formData,
@@ -21,30 +21,23 @@ const SignIn = () => {
 	};
 	const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		try {
-			dispatch(signInStart());
-			const res = await fetch("/api/auth/signin", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(formData),
-			});
-			const data = await res.json();
-			console.log(data);
-			if (data.success === false) {
-				dispatch(signInFailure(data.message));
-				return;
-			}
-			dispatch(signInSuccess(data));
-			navigate("/");
-		} catch (error: unknown) {
-			dispatch(
-				signInFailure(
-					error instanceof Error ? error.message : "Something went wrong",
-				),
-			);
+		const { email, password } = formData;
+		if (!email || !password) {
+			setError("Email and password are required");
+			return;
 		}
+		setLoading(true);
+		setError(null);
+		const { error: signInError } = await authClient.signIn.email({
+			email,
+			password,
+		});
+		setLoading(false);
+		if (signInError) {
+			setError(signInError.message ?? "Sign in failed");
+			return;
+		}
+		navigate("/");
 	};
 	return (
 		<div className="mx-auto p-3 max-w-lg">

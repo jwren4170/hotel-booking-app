@@ -1,10 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { NextFunction, Request, Response } from "express";
 import multer from "multer";
 import { errorHandler } from "../utils/error.ts";
-import type { AuthedRequest } from "../utils/verifyToken.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -16,10 +16,9 @@ if (!existsSync(AVATARS_DIR)) {
 
 const storage = multer.diskStorage({
 	destination: (_req, _file, cb) => cb(null, AVATARS_DIR),
-	filename: (req, file, cb) => {
-		const userId = (req as AuthedRequest).user?.id ?? "anon";
+	filename: (_req, file, cb) => {
 		const ext = extname(file.originalname).toLowerCase().slice(0, 5) || ".png";
-		cb(null, `${userId}-${Date.now()}${ext}`);
+		cb(null, `${randomUUID()}${ext}`);
 	},
 });
 

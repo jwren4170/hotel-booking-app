@@ -6,19 +6,7 @@ import {
 	useState,
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import {
-	deleteUserFailure,
-	deleteUserStart,
-	deleteUserSuccess,
-	signInSuccess,
-	signOutUserFailure,
-	signOutUserStart,
-	signOutUserSuccess,
-	updateUserFailure,
-	updateUserStart,
-	updateUserSuccess,
-} from "../redux/user/userSlice";
+import { authClient, useSession } from "../lib/authClient";
 
 interface Listing {
 	_id: string;
@@ -26,21 +14,19 @@ interface Listing {
 	imageUrls: string[];
 }
 
-type ProfileFormData = Partial<
-	Record<"username" | "email" | "password", string>
->;
-
 export default function Profile() {
 	const fileRef = useRef<HTMLInputElement>(null);
-	const { currentUser, loading, error } = useAppSelector((state) => state.user);
+	const { data: session, refetch } = useSession();
+	const currentUser = session?.user;
 	const [file, setFile] = useState<File | undefined>(undefined);
 	const [filePerc, setFilePerc] = useState(0);
 	const [fileUploadError, setFileUploadError] = useState(false);
-	const [formData, setFormData] = useState<ProfileFormData>({});
+	const [username, setUsername] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 	const [updateSuccess, setUpdateSuccess] = useState(false);
 	const [showListingsError, setShowListingsError] = useState(false);
 	const [userListings, setUserListings] = useState<Listing[]>([]);
-	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -51,6 +37,7 @@ export default function Profile() {
 
 		const xhr = new XMLHttpRequest();
 		xhr.open("POST", "/api/user/avatar");
+		xhr.withCredentials = true;
 
 		xhr.upload.addEventListener("progress", (e) => {
 			if (e.lengthComputable) {
@@ -61,7 +48,7 @@ export default function Profile() {
 		xhr.addEventListener("load", () => {
 			if (xhr.status >= 200 && xhr.status < 300) {
 				setFilePerc(100);
-				dispatch(signInSuccess(JSON.parse(xhr.responseText)));
+				refetch();
 			} else {
 				setFileUploadError(true);
 			}
@@ -74,90 +61,49 @@ export default function Profile() {
 		xhr.send(body);
 
 		return () => xhr.abort();
-	}, [file, dispatch]);
+	}, [file, refetch]);
 
 	if (!currentUser) return null;
 
-	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-		setFormData({
-			...formData,
-			[e.target.id as keyof ProfileFormData]: e.target.value,
-		});
+	const handleUsernameChange = (e: ChangeEvent<HTMLInputElement>) => {
+		setUsername(e.target.value);
 	};
 
 	const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (e) => {
 		e.preventDefault();
-		try {
-			dispatch(updateUserStart());
-			const res = await fetch(`/api/user/update/${currentUser._id}`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(formData),
-			});
-			const data = await res.json();
-			if (data.success === false) {
-				dispatch(updateUserFailure(data.message));
-				return;
-			}
-
-			dispatch(updateUserSuccess(data));
-			setUpdateSuccess(true);
-		} catch (error) {
-			dispatch(
-				updateUserFailure(
-					error instanceof Error ? error.message : String(error),
-				),
-			);
+		if (!username || username === currentUser.username) return;
+		setLoading(true);
+		setError(null);
+		setUpdateSuccess(false);
+		const { error: updateError } = await authClient.updateUser({ username });
+		setLoading(false);
+		if (updateError) {
+			setError(updateError.message ?? "Update failed");
+			return;
 		}
+		setUpdateSuccess(true);
 	};
 
 	const handleDeleteUser = async () => {
-		try {
-			dispatch(deleteUserStart());
-			const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-				method: "DELETE",
-			});
-			const data = await res.json();
-			if (data.success === false) {
-				dispatch(deleteUserFailure(data.message));
-				return;
-			}
-			dispatch(deleteUserSuccess(data));
-		} catch (error) {
-			dispatch(
-				deleteUserFailure(
-					error instanceof Error ? error.message : String(error),
-				),
-			);
+		setError(null);
+		const { error: deleteError } = await authClient.deleteUser();
+		if (deleteError) {
+			setError(deleteError.message ?? "Delete failed");
+			return;
 		}
+		navigate("/signin", { replace: true });
 	};
 
 	const handleSignOut = async () => {
-		try {
-			dispatch(signOutUserStart());
-			const res = await fetch("/api/auth/signout");
-			const data = await res.json();
-			if (data.success === false) {
-				dispatch(signOutUserFailure(data.message));
-				return;
-			}
-			navigate("/signin", { replace: true });
-			dispatch(signOutUserSuccess());
-		} catch (error) {
-			dispatch(
-				signOutUserFailure(
-					error instanceof Error ? error.message : String(error),
-				),
-			);
-		}
+		setError(null);
+		await authClient.signOut();
+		navigate("/signin", { replace: true });
 	};
 
 	const handleShowListings = async () => {
 		try {
 			setShowListingsError(false);
-			const res = await fetch(`/api/user/listings/${currentUser._id}`);
+			const res = await fetch(`/api/user/listings/${currentUser.id}`);
 			const data = await res.json();
 			if (data.success === false) {
 				setShowListingsError(true);
@@ -201,7 +147,7 @@ export default function Profile() {
 				/>
 				<img
 					onClick={() => fileRef.current?.click()}
-					src={currentUser.avatar}
+					src={currentUser.image ?? "/images/default-avatar.png"}
 					alt="profile"
 					className="self-center mt-2 rounded-full w-24 h-24 object-cover cursor-pointer"
 				/>
@@ -224,22 +170,14 @@ export default function Profile() {
 					defaultValue={currentUser.username}
 					id="username"
 					className="p-3 border rounded-lg"
-					onChange={handleChange}
+					onChange={handleUsernameChange}
 				/>
 				<input
 					type="email"
-					placeholder="email"
 					id="email"
 					defaultValue={currentUser.email}
-					className="p-3 border rounded-lg"
-					onChange={handleChange}
-				/>
-				<input
-					type="password"
-					placeholder="Change password"
-					onChange={handleChange}
-					id="password"
-					className="p-3 border rounded-lg"
+					disabled
+					className="bg-slate-100 p-3 border rounded-lg text-slate-500"
 				/>
 				<button
 					disabled={loading}
@@ -267,7 +205,7 @@ export default function Profile() {
 			</div>
 
 			<p className="mt-5 text-red-700">{error ? error : ""}</p>
-			<p className="mt-5 text-green-700">
+			<p className="mt-5 font-bold text-green-700 text-xl text-center">
 				{updateSuccess ? "User is updated successfully!" : ""}
 			</p>
 			<button onClick={handleShowListings} className="w-full text-green-700">

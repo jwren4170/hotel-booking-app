@@ -1,15 +1,19 @@
 import { type ChangeEvent, type SubmitEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
-import { useAppDispatch } from "../redux/hooks";
-import { signInSuccess } from "../redux/user/userSlice";
+import { authClient } from "../lib/authClient";
+
+type SignUpFormData = {
+	username?: string;
+	email?: string;
+	password?: string;
+};
 
 const SignUp = () => {
-	const [formData, setFormData] = useState({});
+	const [formData, setFormData] = useState<SignUpFormData>({});
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 	const navigate = useNavigate();
-	const dispatch = useAppDispatch();
 
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setFormData({
@@ -20,29 +24,25 @@ const SignUp = () => {
 
 	const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		try {
-			setLoading(true);
-			const res = await fetch("/api/auth/signup", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(formData),
-			});
-			const data = await res.json();
-			if (data.success === false) {
-				setLoading(false);
-				setError(data.message);
-				return;
-			}
-			setLoading(false);
-			setError(null);
-			dispatch(signInSuccess(data));
-			navigate("/");
-		} catch (error: unknown) {
-			setLoading(false);
-			setError(error instanceof Error ? error.message : "Something went wrong");
+		const { username, email, password } = formData;
+		if (!username || !email || !password) {
+			setError("All fields are required");
+			return;
 		}
+		setLoading(true);
+		setError(null);
+		const { error: signUpError } = await authClient.signUp.email({
+			email,
+			password,
+			name: username,
+			username,
+		});
+		setLoading(false);
+		if (signUpError) {
+			setError(signUpError.message ?? "Sign up failed");
+			return;
+		}
+		navigate("/");
 	};
 	return (
 		<div className="mx-auto p-3 max-w-lg">
