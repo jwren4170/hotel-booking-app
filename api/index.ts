@@ -9,6 +9,7 @@ import express, {
 	type Response,
 } from "express";
 import { auth } from "./auth.ts";
+import listingRoutes from "./routes/listing.route.ts";
 import userRoutes from "./routes/user.route.ts";
 import { env } from "./utils/env.ts";
 
@@ -30,6 +31,7 @@ app.use(express.json());
 
 app.use("/api/uploads", express.static(resolve(__dirname, "uploads")));
 app.use("/api/user", userRoutes);
+app.use("/api/listing", listingRoutes);
 
 app.use(
 	(

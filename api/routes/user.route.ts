@@ -2,8 +2,8 @@ import express from "express";
 import { updateAvatar } from "../controllers/user.controller.ts";
 import { uploadAvatarSingle } from "../middleware/uploadAvatar.ts";
 
-const router = express.Router();
+const userRoutes = express.Router();
 
-router.post("/avatar", uploadAvatarSingle, updateAvatar);
+userRoutes.post("/avatar", uploadAvatarSingle, updateAvatar);
 
-export default router;
+export default userRoutes;
