@@ -51,5 +51,5 @@ app.use(
 );
 
 app.listen(PORT, () => {
-	console.log(`App listing on http://localhost:${PORT}`);
+	console.log(`App listening on http://localhost:${PORT}`);
 });

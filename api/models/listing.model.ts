@@ -1,63 +1,23 @@
-import mongoose from "mongoose";
+import type { ObjectId } from "mongodb";
+import { db } from "../auth.ts";
 
-const listingSchema = new mongoose.Schema(
-	{
-		name: {
-			type: String,
-			required: true,
-		},
-		description: {
-			type: String,
-			required: true,
-		},
-		address: {
-			type: String,
-			required: true,
-		},
-		regularPrice: {
-			type: Number,
-			required: true,
-		},
-		discountPrice: {
-			type: Number,
-			required: true,
-		},
-		bathrooms: {
-			type: Number,
-			required: true,
-		},
-		bedrooms: {
-			type: Number,
-			required: true,
-		},
-		furnished: {
-			type: Boolean,
-			required: true,
-		},
-		parking: {
-			type: Boolean,
-			required: true,
-		},
-		type: {
-			type: String,
-			required: true,
-		},
-		offer: {
-			type: Boolean,
-			required: true,
-		},
-		imageUrls: {
-			type: Array,
-			required: true,
-		},
-		userRef: {
-			type: String,
-			required: true,
-		},
-	},
-	{ timestamps: true },
-);
+export interface Listing {
+	_id: ObjectId;
+	name: string;
+	description: string;
+	address: string;
+	regularPrice: number;
+	discountPrice: number;
+	bathrooms: number;
+	bedrooms: number;
+	furnished: boolean;
+	parking: boolean;
+	type: "sale" | "rent";
+	offer: boolean;
+	imageUrls: string[];
+	userRef: string;
+	createdAt: Date;
+	updatedAt: Date;
+}
 
-const Listing = mongoose.model("Listing", listingSchema);
-
-export default Listing;
+export const listings = db.collection<Listing>("listings");

@@ -187,7 +187,7 @@ export default function Profile() {
 				</button>
 				<Link
 					className="bg-green-700 hover:opacity-95 p-3 rounded-lg text-white text-center uppercase"
-					to={"/create-listing"}
+					to={"/create"}
 				>
 					Create Listing
 				</Link>

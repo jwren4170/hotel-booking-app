@@ -4,8 +4,9 @@ import Header from "./components/Header";
 import PrivateRoute from "./components/PrivateRoute";
 import { useSession } from "./lib/authClient";
 import About from "./pages/about";
-import CreateListing from "./pages/create-listing";
+import CreateListing from "./pages/create";
 import Home from "./pages/home";
+import Listing from "./pages/listing";
 import Profile from "./pages/profile";
 import SignIn from "./pages/signin";
 import SignUp from "./pages/signup";
@@ -24,7 +25,8 @@ function App() {
 				</Route>
 				<Route path="/signup" element={<SignUp />} />
 				<Route path="/signin" element={<SignIn />} />
-				<Route path="/create-listing" element={<CreateListing />} />
+				<Route path="/create" element={<CreateListing />} />
+				<Route path="/listing/:id" element={<Listing />} />
 			</Routes>
 		</BrowserRouter>
 	);

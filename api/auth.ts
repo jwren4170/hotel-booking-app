@@ -3,8 +3,8 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 import { env } from "./utils/env.ts";
 
-const client = new MongoClient(env.DATABASE_URI);
-const db = client.db();
+export const mongoClient = new MongoClient(env.DATABASE_URI);
+export const db = mongoClient.db();
 
 export const auth = betterAuth({
 	baseURL: env.BETTER_AUTH_URL,

@@ -1,10 +1,19 @@
 import type { NextFunction, Request, Response } from "express";
-import type { SortOrder } from "mongoose";
-import Listing from "../models/listing.model.ts";
+import { ObjectId, type SortDirection } from "mongodb";
+import { listings } from "../models/listing.model.ts";
 import { errorHandler } from "../utils/error.ts";
 
 const firstString = (v: unknown, fallback: string = ""): string =>
 	typeof v === "string" ? v : fallback;
+
+const toObjectId = (id: unknown): ObjectId | null => {
+	if (typeof id !== "string") return null;
+	try {
+		return new ObjectId(id);
+	} catch {
+		return null;
+	}
+};
 
 export const createListing = async (
 	req: Request,
@@ -12,8 +21,10 @@ export const createListing = async (
 	next: NextFunction,
 ) => {
 	try {
-		const listing = await Listing.create(req.body);
-		return res.status(201).json(listing);
+		const now = new Date();
+		const doc = { ...req.body, createdAt: now, updatedAt: now };
+		const result = await listings.insertOne(doc);
+		return res.status(201).json({ ...doc, _id: result.insertedId });
 	} catch (error) {
 		next(error);
 	}
@@ -41,8 +52,10 @@ export const deleteListing = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const listing = await Listing.findById(req.params.id);
+	const oid = toObjectId(req.params.id);
+	if (!oid) return next(errorHandler(400, "Invalid listing id"));
 
+	const listing = await listings.findOne({ _id: oid });
 	if (!listing) {
 		return next(errorHandler(404, "Listing not found!"));
 	}
@@ -56,7 +69,7 @@ export const deleteListing = async (
 	}
 
 	try {
-		await Listing.findByIdAndDelete(req.params.id);
+		await listings.deleteOne({ _id: oid });
 		res.status(200).json("Listing has been deleted!");
 	} catch (error) {
 		next(error);
@@ -68,7 +81,10 @@ export const updateListing = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const listing = await Listing.findById(req.params.id);
+	const oid = toObjectId(req.params.id);
+	if (!oid) return next(errorHandler(400, "Invalid listing id"));
+
+	const listing = await listings.findOne({ _id: oid });
 	if (!listing) {
 		return next(errorHandler(404, "Listing not found!"));
 	}
@@ -82,12 +98,17 @@ export const updateListing = async (
 	}
 
 	try {
-		const updatedListing = await Listing.findByIdAndUpdate(
-			req.params.id,
-			req.body,
-			{ new: true },
+		const {
+			_id: _ignoredId,
+			createdAt: _ignoredCreatedAt,
+			...patch
+		} = req.body ?? {};
+		const result = await listings.findOneAndUpdate(
+			{ _id: oid },
+			{ $set: { ...patch, updatedAt: new Date() } },
+			{ returnDocument: "after" },
 		);
-		res.status(200).json(updatedListing);
+		res.status(200).json(result);
 	} catch (error) {
 		next(error);
 	}
@@ -99,7 +120,10 @@ export const getListing = async (
 	next: NextFunction,
 ) => {
 	try {
-		const listing = await Listing.findById(req.params.id);
+		const oid = toObjectId(req.params.id);
+		if (!oid) return next(errorHandler(400, "Invalid listing id"));
+
+		const listing = await listings.findOne({ _id: oid });
 		if (!listing) {
 			return next(errorHandler(404, "Listing not found!"));
 		}
@@ -124,7 +148,8 @@ export const getListings = async (
 		const typeParam = firstString(req.query.type);
 		const searchTerm = firstString(req.query.searchTerm);
 		const sort = firstString(req.query.sort, "createdAt");
-		const order = firstString(req.query.order, "desc") as SortOrder;
+		const order: SortDirection =
+			firstString(req.query.order, "desc") === "asc" ? 1 : -1;
 
 		const filter: Record<string, unknown> = {
 			name: { $regex: searchTerm, $options: "i" },
@@ -146,12 +171,14 @@ export const getListings = async (
 					: typeParam,
 		};
 
-		const listings = await Listing.find(filter)
+		const results = await listings
+			.find(filter)
 			.sort({ [sort]: order })
+			.skip(startIndex)
 			.limit(limit)
-			.skip(startIndex);
+			.toArray();
 
-		return res.status(200).json(listings);
+		return res.status(200).json(results);
 	} catch (error) {
 		next(error);
 	}

@@ -356,6 +356,7 @@ export default function CreateListing() {
 							</div>
 						))}
 					<button
+						type="submit"
 						disabled={loading || uploading}
 						className="bg-slate-700 hover:opacity-95 disabled:opacity-80 p-3 rounded-lg text-white uppercase"
 					>
