@@ -1,18 +1,23 @@
-import { type ChangeEvent, type SubmitEvent, useState } from "react";
+import {
+	type ChangeEvent,
+	type SubmitEventHandler,
+	useEffect,
+	useState,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
-import { authClient } from "../lib/authClient";
-
-type SignInFormData = {
-	email?: string;
-	password?: string;
-};
+import { authClient, useSession } from "../lib/authClient";
 
 const SignIn = () => {
 	const [formData, setFormData] = useState<SignInFormData>({});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const navigate = useNavigate();
+	const { data: session } = useSession();
+
+	useEffect(() => {
+		if (session?.user) navigate("/profile", { replace: true });
+	}, [session, navigate]);
 	const handleChange = (
 		e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
 	) => {
@@ -21,7 +26,7 @@ const SignIn = () => {
 			[e.target.id]: e.target.value,
 		});
 	};
-	const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
+	const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (e) => {
 		e.preventDefault();
 		const { email, password } = formData;
 		if (!email || !password) {
@@ -39,7 +44,6 @@ const SignIn = () => {
 			setError(signInError.message ?? "Sign in failed");
 			return;
 		}
-		navigate("/");
 	};
 	return (
 		<div className="mx-auto p-3 max-w-lg">

@@ -27,3 +27,8 @@ declare interface ErrorBoundaryState {
 	hasError: boolean;
 	error?: Error;
 }
+
+declare interface SignInFormData {
+	email?: string;
+	password?: string;
+}

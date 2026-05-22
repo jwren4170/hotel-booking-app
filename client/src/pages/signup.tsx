@@ -1,7 +1,12 @@
-import { type ChangeEvent, type SubmitEvent, useState } from "react";
+import {
+	type ChangeEvent,
+	type SubmitEventHandler,
+	useEffect,
+	useState,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
-import { authClient } from "../lib/authClient";
+import { authClient, useSession } from "../lib/authClient";
 
 type SignUpFormData = {
 	username?: string;
@@ -14,6 +19,11 @@ const SignUp = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 	const navigate = useNavigate();
+	const { data: session } = useSession();
+
+	useEffect(() => {
+		if (session?.user) navigate("/", { replace: true });
+	}, [session, navigate]);
 
 	const handleChange = (
 		e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -24,7 +34,7 @@ const SignUp = () => {
 		});
 	};
 
-	const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
+	const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (e) => {
 		e.preventDefault();
 		const { username, email, password } = formData;
 		if (!username || !email || !password) {
@@ -44,7 +54,6 @@ const SignUp = () => {
 			setError(signUpError.message ?? "Sign up failed");
 			return;
 		}
-		navigate("/");
 	};
 	return (
 		<div className="mx-auto p-3 max-w-lg">

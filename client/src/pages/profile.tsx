@@ -1,11 +1,12 @@
 import {
 	type ChangeEvent,
 	type SubmitEventHandler,
+	useCallback,
 	useEffect,
 	useRef,
 	useState,
 } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient, useSession } from "../lib/authClient";
 
 export default function Profile() {
@@ -22,6 +23,32 @@ export default function Profile() {
 	const [showListingsError, setShowListingsError] = useState(false);
 	const [userListings, setUserListings] = useState<Listing[]>([]);
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+
+	const handleShowListings = useCallback(async () => {
+		if (!currentUser) return;
+		try {
+			setShowListingsError(false);
+			const res = await fetch(
+				`/api/listing/get?userRef=${encodeURIComponent(currentUser.id)}`,
+				{ credentials: "include" },
+			);
+			const data = await res.json();
+			if (data.success === false) {
+				setShowListingsError(true);
+				return;
+			}
+			setUserListings(data);
+		} catch {
+			setShowListingsError(true);
+		}
+	}, [currentUser]);
+
+	useEffect(() => {
+		if (searchParams.get("listings") === "1") {
+			handleShowListings();
+		}
+	}, [searchParams, handleShowListings]);
 
 	useEffect(() => {
 		if (!file) return;
@@ -95,25 +122,6 @@ export default function Profile() {
 		setError(null);
 		await authClient.signOut();
 		navigate("/signin", { replace: true });
-	};
-
-	const handleShowListings = async () => {
-		try {
-			setShowListingsError(false);
-			const res = await fetch(
-				`/api/listing/get?userRef=${encodeURIComponent(currentUser.id)}`,
-				{ credentials: "include" },
-			);
-			const data = await res.json();
-			if (data.success === false) {
-				setShowListingsError(true);
-				return;
-			}
-
-			setUserListings(data);
-		} catch {
-			setShowListingsError(true);
-		}
 	};
 
 	const handleListingDelete = async (listingId: string) => {
@@ -211,9 +219,9 @@ export default function Profile() {
 			<p className="mt-5 font-bold text-green-700 text-xl text-center">
 				{updateSuccess ? "User is updated successfully!" : ""}
 			</p>
-			<button onClick={handleShowListings} className="w-full text-green-700">
+			{/* <button onClick={handleShowListings} className="w-full text-green-700">
 				Show Listings
-			</button>
+			</button> */}
 			<p className="mt-5 text-red-700">
 				{showListingsError ? "Error showing listings" : ""}
 			</p>

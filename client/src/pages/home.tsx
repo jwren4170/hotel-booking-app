@@ -48,7 +48,14 @@ const Home = () => {
 	return (
 		<div>
 			{/* top */}
-			<div className="flex flex-col gap-6 mx-auto p-28 px-3 max-w-6xl">
+			<img
+				className="mx-auto mt-0 w-full h-55 md:h-128 object-cover"
+				src="/images/hero-house.jpg"
+				alt="hero house"
+				height="100%"
+			/>
+
+			<div className="flex flex-col gap-6 mx-auto px-3 pt-15 max-w-6xl">
 				<h1 className="font-bold text-slate-700 text-3xl lg:text-6xl">
 					Find your next <span className="text-slate-500">perfect</span>
 					<br />
@@ -60,12 +67,12 @@ const Home = () => {
 					<br />
 					We have a wide range of properties for you to choose from.
 				</div>
-				<Link
+				{/* <Link
 					to={"/search"}
 					className="font-bold text-blue-800 text-xs sm:text-sm hover:underline"
 				>
 					Let's get started...
-				</Link>
+				</Link> */}
 			</div>
 
 			{/* swiper */}
