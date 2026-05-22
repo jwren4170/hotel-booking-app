@@ -147,6 +147,7 @@ export const getListings = async (
 		const parkingParam = firstString(req.query.parking);
 		const typeParam = firstString(req.query.type);
 		const searchTerm = firstString(req.query.searchTerm);
+		const userRefParam = firstString(req.query.userRef);
 		const sort = firstString(req.query.sort, "createdAt");
 		const order: SortDirection =
 			firstString(req.query.order, "desc") === "asc" ? 1 : -1;
@@ -169,6 +170,7 @@ export const getListings = async (
 				typeParam === "" || typeParam === "all"
 					? { $in: ["sale", "rent"] }
 					: typeParam,
+			...(userRefParam ? { userRef: userRefParam } : {}),
 		};
 
 		const results = await listings

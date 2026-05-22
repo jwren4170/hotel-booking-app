@@ -10,6 +10,7 @@ import Listing from "./pages/listing";
 import Profile from "./pages/profile";
 import SignIn from "./pages/signin";
 import SignUp from "./pages/signup";
+import UpdateListing from "./pages/update";
 
 function App() {
 	const { isPending } = useSession();
@@ -27,6 +28,7 @@ function App() {
 				<Route path="/signin" element={<SignIn />} />
 				<Route path="/create" element={<CreateListing />} />
 				<Route path="/listing/:id" element={<Listing />} />
+				<Route path="/update/:id" element={<UpdateListing />} />
 			</Routes>
 		</BrowserRouter>
 	);

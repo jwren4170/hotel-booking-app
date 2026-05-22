@@ -103,7 +103,10 @@ export default function Profile() {
 	const handleShowListings = async () => {
 		try {
 			setShowListingsError(false);
-			const res = await fetch(`/api/user/listings/${currentUser.id}`);
+			const res = await fetch(
+				`/api/listing/get?userRef=${encodeURIComponent(currentUser.id)}`,
+				{ credentials: "include" },
+			);
 			const data = await res.json();
 			if (data.success === false) {
 				setShowListingsError(true);
@@ -140,6 +143,7 @@ export default function Profile() {
 			<form onSubmit={handleSubmit} className="flex flex-col gap-4">
 				<input
 					onChange={(e) => setFile(e.target.files?.[0])}
+					id="avatar"
 					type="file"
 					ref={fileRef}
 					hidden
@@ -171,6 +175,7 @@ export default function Profile() {
 					id="username"
 					className="p-3 border rounded-lg"
 					onChange={handleUsernameChange}
+					autoComplete="true"
 				/>
 				<input
 					type="email"
@@ -178,6 +183,7 @@ export default function Profile() {
 					defaultValue={currentUser.email}
 					disabled
 					className="bg-slate-100 p-3 border rounded-lg text-slate-500"
+					autoComplete="true"
 				/>
 				<button
 					disabled={loading}
@@ -246,7 +252,7 @@ export default function Profile() {
 								>
 									Delete
 								</button>
-								<Link to={`/update-listing/${listing._id}`}>
+								<Link to={`/update/${listing._id}`}>
 									<button className="text-green-700 uppercase">Edit</button>
 								</Link>
 							</div>

@@ -19,9 +19,9 @@ listingRoutes.post(
 	uploadListingImagesArray,
 	uploadListingImages,
 );
-// listingRoutes.delete("/delete/:id", verifyToken, deleteListing);
-// listingRoutes.post("/update/:id", verifyToken, updateListing);
+listingRoutes.delete("/delete/:id", verifyToken, deleteListing);
+listingRoutes.post("/update/:id", verifyToken, updateListing);
 listingRoutes.get("/get/:id", getListing);
-// listingRoutes.get("/get", getListings);
+listingRoutes.get("/get", getListings);
 
 export default listingRoutes;
