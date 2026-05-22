@@ -8,12 +8,6 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { authClient, useSession } from "../lib/authClient";
 
-interface Listing {
-	_id: string;
-	name: string;
-	imageUrls: string[];
-}
-
 export default function Profile() {
 	const fileRef = useRef<HTMLInputElement>(null);
 	const { data: session, refetch } = useSession();
@@ -39,11 +33,14 @@ export default function Profile() {
 		xhr.open("POST", "/api/user/avatar");
 		xhr.withCredentials = true;
 
-		xhr.upload.addEventListener("progress", (e) => {
-			if (e.lengthComputable) {
-				setFilePerc(Math.round((e.loaded / e.total) * 100));
-			}
-		});
+		xhr.upload.addEventListener(
+			"progress",
+			(e: ProgressEvent<XMLHttpRequestEventTarget>) => {
+				if (e.lengthComputable) {
+					setFilePerc(Math.round((e.loaded / e.total) * 100));
+				}
+			},
+		);
 
 		xhr.addEventListener("load", () => {
 			if (xhr.status >= 200 && xhr.status < 300) {

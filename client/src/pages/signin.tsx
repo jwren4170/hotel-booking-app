@@ -13,7 +13,9 @@ const SignIn = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const navigate = useNavigate();
-	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+	const handleChange = (
+		e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+	) => {
 		setFormData({
 			...formData,
 			[e.target.id]: e.target.value,

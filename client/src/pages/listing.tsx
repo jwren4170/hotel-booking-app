@@ -1,23 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-interface Listing {
-	_id: string;
-	name: string;
-	description: string;
-	address: string;
-	regularPrice: number;
-	discountPrice: number;
-	bathrooms: number;
-	bedrooms: number;
-	furnished: boolean;
-	parking: boolean;
-	type: "sale" | "rent";
-	offer: boolean;
-	imageUrls: string[];
-	userRef: string;
-}
-
 export default function Listing() {
 	const { id } = useParams<{ id: string }>();
 	const [listing, setListing] = useState<Listing | null>(null);

@@ -1,21 +1,6 @@
 import { type ChangeEvent, type SubmitEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSession } from "../lib/authClient";
-
-interface ListingFormData {
-	imageUrls: string[];
-	name: string;
-	description: string;
-	address: string;
-	type: "sale" | "rent";
-	bedrooms: number;
-	bathrooms: number;
-	regularPrice: number;
-	discountPrice: number;
-	offer: boolean;
-	parking: boolean;
-	furnished: boolean;
-}
+import { useSession } from "../lib/authClient.ts";
 
 export default function CreateListing() {
 	const navigate = useNavigate();
@@ -336,7 +321,7 @@ export default function CreateListing() {
 						{imageUploadError && imageUploadError}
 					</p>
 					{formData.imageUrls.length > 0 &&
-						formData.imageUrls.map((url, index) => (
+						formData.imageUrls.map((url: string, index: number) => (
 							<div
 								key={url}
 								className="flex justify-between items-center p-3 border"

@@ -4,6 +4,7 @@ import { fromNodeHeaders } from "better-auth/node";
 import type { NextFunction, Request, Response } from "express";
 import { auth } from "../auth.ts";
 import { AVATARS_DIR } from "../middleware/uploadAvatar.ts";
+import { listings } from "../models/listing.model.ts";
 import { errorHandler } from "../utils/error.ts";
 
 export const updateAvatar = async (
@@ -41,5 +42,24 @@ export const updateAvatar = async (
 		res.status(200).json(updated);
 	} catch (error) {
 		next(error);
+	}
+};
+
+export const getUserListings = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	if (req.user?.id === req.params.id) {
+		try {
+			const userListings = await listings
+				.find({ userRef: req.params.id })
+				.toArray();
+			res.status(200).json(userListings);
+		} catch (error) {
+			next(error);
+		}
+	} else {
+		next(errorHandler(401, "You can only get your own listings!"));
 	}
 };

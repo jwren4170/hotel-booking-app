@@ -1,12 +1,18 @@
 {
 	"compilerOptions": {
 		// Environment setup & latest features
-		"lib": ["ESNext"],
+		"lib": ["ESNext", "DOM"],
 		"target": "ESNext",
 		"module": "Preserve",
 		"moduleDetection": "force",
 		"jsx": "react-jsx",
 		"allowJs": true,
+		"sourceMap": true,
+		"types": ["node"],
+		"paths": {
+			"@/src/*": ["./src/*"],
+			"@/*": ["./*"]
+		},
 
 		// Bundler mode
 		"moduleResolution": "bundler",
@@ -25,5 +31,6 @@
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false
-	}
+	},
+	"include": ["src/**/*", "client/src/types.d.ts"]
 }

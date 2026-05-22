@@ -5,7 +5,7 @@ const OAuth = () => {
 		try {
 			await authClient.signIn.social({
 				provider: "google",
-				callbackURL: `${window.location.origin}/`,
+				callbackURL: `${window.location.origin}/signin`,
 			});
 		} catch (error: unknown) {
 			console.log("Could not sign in with google", error);
